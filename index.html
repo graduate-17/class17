@@ -35,10 +35,11 @@
               <div class="page-number">封底</div>
             </div>
           </div>
-          <button class="page-btn prev-btn" id="prevBtn">
+          <!-- ===== 翻页按钮使用内联 onclick ===== -->
+          <button class="page-btn prev-btn" id="prevBtn" onclick="prevPage()">
             <i class="fas fa-chevron-left"></i>
           </button>
-          <button class="page-btn next-btn" id="nextBtn">
+          <button class="page-btn next-btn" id="nextBtn" onclick="nextPage()">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>

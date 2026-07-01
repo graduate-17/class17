@@ -6,8 +6,6 @@ const leftPage = document.getElementById('leftPage');
 const rightPage = document.getElementById('rightPage');
 const leftContent = document.getElementById('leftContent');
 const rightContent = document.getElementById('rightContent');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
 const pageIndicator = document.getElementById('pageIndicator');
 
 let allMessages = [];
@@ -55,10 +53,20 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-//  翻页按钮
+//  翻页函数（暴露为全局，供 onclick 调用）
 // ============================================================
-prevBtn.addEventListener('click', prevPage);
-nextBtn.addEventListener('click', nextPage);
+window.prevPage = function() {
+  if (currentPage > 0) {
+    renderPage(currentPage - 1);
+  }
+};
+
+window.nextPage = function() {
+  const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
+  if (currentPage < total - 1) {
+    renderPage(currentPage + 1);
+  }
+};
 
 // ============================================================
 //  留言加载与渲染
@@ -159,19 +167,12 @@ function renderPage(pageIndex) {
   updateButtons();
 }
 
-function nextPage() {
-  const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
-  if (currentPage < total - 1) renderPage(currentPage + 1);
-}
-
-function prevPage() {
-  if (currentPage > 0) renderPage(currentPage - 1);
-}
-
 function updateButtons() {
   const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
-  prevBtn.disabled = currentPage === 0;
-  nextBtn.disabled = currentPage >= total - 1;
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  if (prevBtn) prevBtn.disabled = currentPage === 0;
+  if (nextBtn) nextBtn.disabled = currentPage >= total - 1;
 }
 
 function escapeHtml(text) {
@@ -194,7 +195,7 @@ function formatTime(dateStr) {
 }
 
 // ============================================================
-//  提交留言（无内联）
+//  提交留言
 // ============================================================
 const messageForm = document.getElementById('messageForm');
 const authorInput = document.getElementById('authorInput');
@@ -247,11 +248,10 @@ function showMessage(text, type) {
 }
 
 // ============================================================
-//  照片墙（无内联 onclick）
+//  照片墙
 // ============================================================
 const photoGrid = document.getElementById('photoGrid');
 
-// 使用事件委托处理照片的点击（删除 + 查看大图）
 photoGrid.addEventListener('click', function(e) {
   const btn = e.target.closest('.delete-btn');
   if (btn) {
@@ -259,7 +259,6 @@ photoGrid.addEventListener('click', function(e) {
     deletePhoto(id);
     return;
   }
-
   const img = e.target.closest('.photo-card img');
   if (img) {
     const url = img.dataset.url || img.src;
@@ -376,16 +375,6 @@ photoForm.addEventListener('submit', async function(e) {
     loadPhotos();
   } catch (err) {
     showPhotoMessage('网络错误: ' + err.message, 'error');
-  }
-});
-
-// 使用事件委托，确保点击按钮时能触发翻页
-document.addEventListener('click', function(e) {
-  if (e.target.closest('#prevBtn')) {
-    prevPage();
-  }
-  if (e.target.closest('#nextBtn')) {
-    nextPage();
   }
 });
 
