@@ -1,4 +1,4 @@
-const API_BASE = 'https://center-production-7836.up.railway.app/';
+const API_BASE = 'https://center-production-7836.up.railway.app';
 const IMGBB_API_KEY = '0bb35dd01d42e7df850d535d2c79e8f6';
 
 // ===== DOM 引用 =====
