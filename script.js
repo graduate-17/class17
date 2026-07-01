@@ -1,7 +1,6 @@
 const API_BASE = 'https://center-production-7836.up.railway.app';
 const IMGBB_API_KEY = '0bb35dd01d42e7df850d535d2c79e8f6';
 
-// ===== DOM 引用 =====
 const leftPage = document.getElementById('leftPage');
 const rightPage = document.getElementById('rightPage');
 const leftContent = document.getElementById('leftContent');
@@ -14,14 +13,10 @@ let allMessages = [];
 let currentPage = 0;
 const ITEMS_PER_PAGE = 4;
 
-// ===== 封装的 fetch =====
 async function apiFetch(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
   });
   return response;
 }
@@ -37,7 +32,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ===== 留言相关 =====
+// ===== 留言 =====
 async function loadMessages() {
   try {
     const res = await apiFetch('/api/messages');
@@ -56,8 +51,10 @@ function renderPage(pageIndex) {
   const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   const current = Math.min(Math.max(pageIndex, 0), total - 1);
 
+  // ===== 左页 =====
   let leftHtml = '';
   if (current === 0) {
+    // 封面 ✅
     leftHtml = `
       <div class="cover-content">
         <div class="big-icon"><i class="fas fa-book-open"></i></div>
@@ -81,10 +78,13 @@ function renderPage(pageIndex) {
       `).join('');
     }
   }
+  leftContent.innerHTML = leftHtml;
 
+  // ===== 右页 =====
   let rightHtml = '';
   const totalPages = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   if (current === totalPages - 1) {
+    // 封底 ✅
     rightHtml = `
       <div class="cover-content">
         <div class="big-icon"><i class="fas fa-heart"></i></div>
@@ -108,11 +108,13 @@ function renderPage(pageIndex) {
       `).join('');
     }
   }
+  rightContent.innerHTML = rightHtml;
 
+  // 页码
   const pageNumLeft = current === 0 ? '' : `<div class="page-number">${current}</div>`;
   const pageNumRight = current === totalPages - 1 ? '' : `<div class="page-number">${current + 1}</div>`;
-  leftContent.innerHTML = leftHtml + pageNumLeft;
-  rightContent.innerHTML = rightHtml + pageNumRight;
+  leftContent.innerHTML += pageNumLeft;
+  rightContent.innerHTML += pageNumRight;
 
   leftPage.classList.remove('page-flip');
   rightPage.classList.remove('page-flip');
@@ -190,7 +192,7 @@ function showMessage(text, type) {
   }
 }
 
-// ===== 照片墙 =====
+// ===== 照片 =====
 async function loadPhotos() {
   const grid = document.getElementById('photoGrid');
   grid.innerHTML = '<div class="loading">加载照片中...</div>';
