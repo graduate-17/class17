@@ -4,18 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>17班毕业纪念 · 留言册 & 照片墙</title>
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdnjs.cloudflare.com;
+    style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline';
+    img-src 'self' https://i.ibb.co https://*.imgbb.com data:;
+    font-src 'self' https://cdnjs.cloudflare.com;
+    connect-src 'self' https://center-production-7836.up.railway.app;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-
-
-
   <div class="container">
     <header>
-      <div class="header-top">
-        <h1><i class="fas fa-graduation-cap"></i> 17班 · 毕业纪念</h1>
-      </div>
+      <h1><i class="fas fa-graduation-cap"></i> 17班 · 毕业纪念</h1>
       <p class="subtitle">愿此去前程似锦，相逢依旧如故</p>
     </header>
 
@@ -40,10 +46,10 @@
               <div class="page-number">封底</div>
             </div>
           </div>
-          <button class="page-btn prev-btn" id="prevBtn" onclick="prevPage()">
+          <button class="page-btn prev-btn" id="prevBtn">
             <i class="fas fa-chevron-left"></i>
           </button>
-          <button class="page-btn next-btn" id="nextBtn" onclick="nextPage()">
+          <button class="page-btn next-btn" id="nextBtn">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>
