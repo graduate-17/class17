@@ -379,6 +379,16 @@ photoForm.addEventListener('submit', async function(e) {
   }
 });
 
+// 使用事件委托，确保点击按钮时能触发翻页
+document.addEventListener('click', function(e) {
+  if (e.target.closest('#prevBtn')) {
+    prevPage();
+  }
+  if (e.target.closest('#nextBtn')) {
+    nextPage();
+  }
+});
+
 // ============================================================
 //  初始化
 // ============================================================
