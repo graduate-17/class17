@@ -1,4 +1,4 @@
-const API_BASE = 'https://server-production-e5bd.up.railway.app';
+const API_BASE = 'https://server-production-c6b8.up.railway.app';
 const IMGBB_API_KEY = '0bb35dd01d42e7df850d535d2c79e8f6';
 
 // ===== DOM 引用 =====
