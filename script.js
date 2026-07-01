@@ -1,6 +1,7 @@
 const API_BASE = 'https://center-production-7836.up.railway.app';
 const IMGBB_API_KEY = '0bb35dd01d42e7df850d535d2c79e8f6';
 
+// ===== DOM 引用 =====
 const leftPage = document.getElementById('leftPage');
 const rightPage = document.getElementById('rightPage');
 const leftContent = document.getElementById('leftContent');
@@ -13,15 +14,21 @@ let allMessages = [];
 let currentPage = 0;
 const ITEMS_PER_PAGE = 4;
 
+// ===== 封装的 fetch =====
 async function apiFetch(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
   });
   return response;
 }
 
-// ===== Tab 切换 =====
+// ============================================================
+//  Tab 切换
+// ============================================================
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -32,7 +39,30 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ===== 留言 =====
+// ============================================================
+//  键盘翻页
+// ============================================================
+document.addEventListener('keydown', function(e) {
+  if (document.querySelector('#tab-book.active')) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextPage();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      prevPage();
+    }
+  }
+});
+
+// ============================================================
+//  翻页按钮
+// ============================================================
+prevBtn.addEventListener('click', prevPage);
+nextBtn.addEventListener('click', nextPage);
+
+// ============================================================
+//  留言加载与渲染
+// ============================================================
 async function loadMessages() {
   try {
     const res = await apiFetch('/api/messages');
@@ -42,6 +72,7 @@ async function loadMessages() {
     renderPage(currentPage);
     updateButtons();
   } catch (err) {
+    console.error('加载留言失败:', err);
     leftContent.innerHTML = `<div class="empty-msg">加载失败，请刷新页面</div>`;
     rightContent.innerHTML = `<div class="empty-msg">加载失败，请刷新页面</div>`;
   }
@@ -51,10 +82,9 @@ function renderPage(pageIndex) {
   const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   const current = Math.min(Math.max(pageIndex, 0), total - 1);
 
-  // ===== 左页 =====
+  // 左页
   let leftHtml = '';
   if (current === 0) {
-    // 封面 ✅
     leftHtml = `
       <div class="cover-content">
         <div class="big-icon"><i class="fas fa-book-open"></i></div>
@@ -67,8 +97,9 @@ function renderPage(pageIndex) {
     const start = (current - 1) * ITEMS_PER_PAGE;
     const end = Math.min(start + ITEMS_PER_PAGE, allMessages.length);
     const items = allMessages.slice(start, end);
-    if (items.length === 0) leftHtml = `<div class="empty-msg">这一页是空的</div>`;
-    else {
+    if (items.length === 0) {
+      leftHtml = `<div class="empty-msg">这一页是空的</div>`;
+    } else {
       leftHtml = items.map(msg => `
         <div class="msg-item">
           <div class="msg-author">${escapeHtml(msg.author)}</div>
@@ -80,11 +111,10 @@ function renderPage(pageIndex) {
   }
   leftContent.innerHTML = leftHtml;
 
-  // ===== 右页 =====
+  // 右页
   let rightHtml = '';
   const totalPages = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   if (current === totalPages - 1) {
-    // 封底 ✅
     rightHtml = `
       <div class="cover-content">
         <div class="big-icon"><i class="fas fa-heart"></i></div>
@@ -97,8 +127,9 @@ function renderPage(pageIndex) {
     const start = current * ITEMS_PER_PAGE;
     const end = Math.min(start + ITEMS_PER_PAGE, allMessages.length);
     const items = allMessages.slice(start, end);
-    if (items.length === 0) rightHtml = `<div class="empty-msg">这一页是空的</div>`;
-    else {
+    if (items.length === 0) {
+      rightHtml = `<div class="empty-msg">这一页是空的</div>`;
+    } else {
       rightHtml = items.map(msg => `
         <div class="msg-item">
           <div class="msg-author">${escapeHtml(msg.author)}</div>
@@ -116,6 +147,7 @@ function renderPage(pageIndex) {
   leftContent.innerHTML += pageNumLeft;
   rightContent.innerHTML += pageNumRight;
 
+  // 翻页动画
   leftPage.classList.remove('page-flip');
   rightPage.classList.remove('page-flip');
   void leftPage.offsetWidth;
@@ -131,9 +163,11 @@ function nextPage() {
   const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   if (currentPage < total - 1) renderPage(currentPage + 1);
 }
+
 function prevPage() {
   if (currentPage > 0) renderPage(currentPage - 1);
 }
+
 function updateButtons() {
   const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   prevBtn.disabled = currentPage === 0;
@@ -146,25 +180,39 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
 function formatTime(dateStr) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '';
-  return date.toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
-// ===== 提交留言 =====
+// ============================================================
+//  提交留言（无内联）
+// ============================================================
 const messageForm = document.getElementById('messageForm');
 const authorInput = document.getElementById('authorInput');
 const contentInput = document.getElementById('contentInput');
 const formMessage = document.getElementById('formMessage');
 
-messageForm.addEventListener('submit', async (e) => {
+messageForm.addEventListener('submit', async function(e) {
   e.preventDefault();
   const author = authorInput.value.trim();
   const content = contentInput.value.trim();
-  if (!content) { showMessage('请填写内容', 'error'); return; }
-  if (content.length > 500) { showMessage('内容不能超过500字', 'error'); return; }
+  if (!content) {
+    showMessage('请填写内容', 'error');
+    return;
+  }
+  if (content.length > 500) {
+    showMessage('内容不能超过500字', 'error');
+    return;
+  }
 
   try {
     const res = await apiFetch('/api/messages', {
@@ -172,7 +220,10 @@ messageForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({ author, content })
     });
     const data = await res.json();
-    if (!data.success) { showMessage(data.error || '提交失败', 'error'); return; }
+    if (!data.success) {
+      showMessage(data.error || '提交失败', 'error');
+      return;
+    }
     showMessage('祝福已送出', 'success');
     authorInput.value = '';
     contentInput.value = '';
@@ -188,34 +239,61 @@ function showMessage(text, type) {
   formMessage.textContent = text;
   formMessage.className = 'form-message ' + type;
   if (type === 'success') {
-    setTimeout(() => { formMessage.textContent = ''; formMessage.className = 'form-message'; }, 3000);
+    setTimeout(function() {
+      formMessage.textContent = '';
+      formMessage.className = 'form-message';
+    }, 3000);
   }
 }
 
-// ===== 照片 =====
+// ============================================================
+//  照片墙（无内联 onclick）
+// ============================================================
+const photoGrid = document.getElementById('photoGrid');
+
+// 使用事件委托处理照片的点击（删除 + 查看大图）
+photoGrid.addEventListener('click', function(e) {
+  const btn = e.target.closest('.delete-btn');
+  if (btn) {
+    const id = parseInt(btn.dataset.id, 10);
+    deletePhoto(id);
+    return;
+  }
+
+  const img = e.target.closest('.photo-card img');
+  if (img) {
+    const url = img.dataset.url || img.src;
+    window.open(url, '_blank');
+    return;
+  }
+});
+
 async function loadPhotos() {
-  const grid = document.getElementById('photoGrid');
-  grid.innerHTML = '<div class="loading">加载照片中...</div>';
+  photoGrid.innerHTML = '<div class="loading">加载照片中...</div>';
   try {
     const res = await apiFetch('/api/photos');
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     if (data.data.length === 0) {
-      grid.innerHTML = '<div class="loading">还没有照片，上传第一张吧</div>';
+      photoGrid.innerHTML = '<div class="loading">还没有照片，上传第一张吧</div>';
       return;
     }
-    grid.innerHTML = data.data.map(p => `
-      <div class="photo-card" data-id="${p.id}">
-        <img src="${p.url}" alt="班级合照" loading="lazy" onclick="window.open('${p.url}','_blank')">
-        <div class="photo-info">
-          <span class="uploader">${escapeHtml(p.uploader)}</span>
-          <span class="time">${formatTime(p.created_at)}</span>
+    photoGrid.innerHTML = data.data.map(function(p) {
+      return `
+        <div class="photo-card" data-id="${p.id}">
+          <img src="${p.url}" alt="班级合照" loading="lazy" data-url="${p.url}">
+          <div class="photo-info">
+            <span class="uploader">${escapeHtml(p.uploader)}</span>
+            <span class="time">${formatTime(p.created_at)}</span>
+          </div>
+          <button class="delete-btn" data-id="${p.id}" title="删除">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
-        <button class="delete-btn" onclick="deletePhoto(${p.id})" title="删除"><i class="fas fa-times"></i></button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (err) {
-    grid.innerHTML = `<div class="loading">加载失败，请刷新页面</div>`;
+    photoGrid.innerHTML = '<div class="loading">加载失败，请刷新页面</div>';
   }
 }
 
@@ -240,20 +318,31 @@ function showPhotoMessage(text, type) {
   el.textContent = text;
   el.className = 'form-message ' + type;
   if (type === 'success') {
-    setTimeout(() => { el.textContent = ''; el.className = 'form-message'; }, 3000);
+    setTimeout(function() {
+      el.textContent = '';
+      el.className = 'form-message';
+    }, 3000);
   }
 }
 
-// ===== 上传照片 =====
+// ============================================================
+//  上传照片
+// ============================================================
 const photoForm = document.getElementById('photoForm');
 const photoFile = document.getElementById('photoFile');
 const photoUploader = document.getElementById('photoUploader');
 
-photoForm.addEventListener('submit', async (e) => {
+photoForm.addEventListener('submit', async function(e) {
   e.preventDefault();
   const file = photoFile.files[0];
-  if (!file) { showPhotoMessage('请选择图片', 'error'); return; }
-  if (file.size > 16 * 1024 * 1024) { showPhotoMessage('图片不能超过16MB', 'error'); return; }
+  if (!file) {
+    showPhotoMessage('请选择图片', 'error');
+    return;
+  }
+  if (file.size > 16 * 1024 * 1024) {
+    showPhotoMessage('图片不能超过16MB', 'error');
+    return;
+  }
 
   showPhotoMessage('上传中...', '');
   const formData = new FormData();
@@ -261,7 +350,10 @@ photoForm.addEventListener('submit', async (e) => {
   formData.append('key', IMGBB_API_KEY);
 
   try {
-    const uploadRes = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
+    const uploadRes = await fetch('https://api.imgbb.com/1/upload', {
+      method: 'POST',
+      body: formData
+    });
     const uploadData = await uploadRes.json();
     if (!uploadData.success) {
       showPhotoMessage('上传到图床失败: ' + (uploadData.error?.message || '未知错误'), 'error');
@@ -274,7 +366,10 @@ photoForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({ url, uploader })
     });
     const saveData = await saveRes.json();
-    if (!saveData.success) { showPhotoMessage(saveData.error || '保存失败', 'error'); return; }
+    if (!saveData.success) {
+      showPhotoMessage(saveData.error || '保存失败', 'error');
+      return;
+    }
     showPhotoMessage('上传成功！', 'success');
     photoFile.value = '';
     photoUploader.value = '';
@@ -284,14 +379,8 @@ photoForm.addEventListener('submit', async (e) => {
   }
 });
 
-// ===== 键盘快捷键翻页 =====
-document.addEventListener('keydown', (e) => {
-  if (document.querySelector('#tab-book.active')) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextPage(); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevPage(); }
-  }
-});
-
-// ===== 初始化 =====
+// ============================================================
+//  初始化
+// ============================================================
 loadMessages();
 loadPhotos();
