@@ -20,18 +20,126 @@ body {
   width: 100%;
 }
 
+/* ===== 登录弹窗 ===== */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(6px);
+}
+.login-overlay.hidden {
+  display: none;
+}
+.login-box {
+  background: #fcf8f0;
+  border-radius: 16px;
+  padding: 36px 32px 32px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+}
+.login-box h2 {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #2d2a24;
+  margin-bottom: 20px;
+}
+.login-box h2 i {
+  color: #b8860b;
+  margin-right: 8px;
+}
+.login-box .form-group {
+  margin-bottom: 14px;
+}
+.login-box .form-group input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #ddd2c2;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #2d2a24;
+  font-family: inherit;
+}
+.login-box .form-group input:focus {
+  outline: none;
+  border-color: #b8860b;
+}
+.login-box button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  background: #2d2a24;
+  color: #f7f3eb;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-box button[type="submit"]:hover {
+  background: #4a443c;
+}
+.login-box button[type="submit"] i {
+  margin-right: 6px;
+}
+.login-error {
+  color: #b34a4a;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 10px;
+  display: none;
+}
+
+/* ===== 顶部 ===== */
 header {
   text-align: center;
   padding: 20px 0 16px;
 }
-header h1 {
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.header-top h1 {
   font-size: 1.8rem;
   letter-spacing: 2px;
   color: #2d2a24;
 }
-header h1 i {
+.header-top h1 i {
   color: #b8860b;
   margin-right: 10px;
+}
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: #7a6e5a;
+}
+.logout-btn {
+  background: transparent;
+  border: 1px solid #ddd2c2;
+  padding: 4px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #7a6e5a;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.logout-btn:hover {
+  background: #b34a4a;
+  color: #fff;
+  border-color: #b34a4a;
 }
 header .subtitle {
   color: #7a6e5a;
@@ -455,6 +563,14 @@ button[type="submit"] i {
   color: #a89880;
 }
 
+/* ===== footer ===== */
+footer {
+  text-align: center;
+  padding: 20px 0 10px;
+  color: #a89880;
+  font-size: 0.85rem;
+}
+
 /* ===== 响应式 ===== */
 @media (max-width: 640px) {
   .book { height: 380px; border-radius: 2px 8px 8px 2px; }
@@ -472,6 +588,8 @@ button[type="submit"] i {
   .tabs .tab-btn { padding: 8px 16px; font-size: 0.8rem; }
   .photo-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
   .photo-card img { height: 120px; }
+  .header-top { flex-direction: column; align-items: center; }
+  .login-box { padding: 28px 20px 24px; }
 }
 @media (max-width: 420px) {
   .book { height: 320px; }
