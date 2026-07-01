@@ -10,24 +10,14 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const pageIndicator = document.getElementById('pageIndicator');
 
-// ===== 登录相关 DOM =====
-const loginOverlay = document.getElementById('loginOverlay');
-const loginForm = document.getElementById('loginForm');
-const loginUsername = document.getElementById('loginUsername');
-const loginPassword = document.getElementById('loginPassword');
-const loginError = document.getElementById('loginError');
-const userGreeting = document.getElementById('userGreeting');
-const logoutBtn = document.getElementById('logoutBtn');
-
 let allMessages = [];
 let currentPage = 0;
 const ITEMS_PER_PAGE = 4;
 
-// ===== 封装的 fetch 自动携带 Cookie =====
+// ===== 封装的 fetch =====
 async function apiFetch(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {})
@@ -35,67 +25,6 @@ async function apiFetch(url, options = {}) {
   });
   return response;
 }
-
-// ===== 检查登录状态 =====
-async function checkLogin() {
-  try {
-    const res = await apiFetch('/api/me');
-    const data = await res.json();
-    if (data.success) {
-      loginOverlay.classList.add('hidden');
-      userGreeting.textContent = '👋 ' + data.user.username;
-      logoutBtn.style.display = 'inline-block';
-      return true;
-    } else {
-      loginOverlay.classList.remove('hidden');
-      userGreeting.textContent = '未登录';
-      logoutBtn.style.display = 'none';
-      return false;
-    }
-  } catch {
-    loginOverlay.classList.remove('hidden');
-    userGreeting.textContent = '未登录';
-    logoutBtn.style.display = 'none';
-    return false;
-  }
-}
-
-// ===== 登录 =====
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  loginError.style.display = 'none';
-  const username = loginUsername.value.trim();
-  const password = loginPassword.value.trim();
-
-  try {
-    const res = await apiFetch('/api/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (data.success) {
-      await checkLogin();
-      loadMessages();
-      loadPhotos();
-      loginUsername.value = '';
-      loginPassword.value = '';
-    } else {
-      loginError.textContent = data.error || '登录失败';
-      loginError.style.display = 'block';
-    }
-  } catch {
-    loginError.textContent = '网络错误，请重试';
-    loginError.style.display = 'block';
-  }
-});
-
-// ===== 退出 =====
-logoutBtn.addEventListener('click', async () => {
-  await apiFetch('/api/logout', { method: 'POST' });
-  await checkLogin();
-  loadMessages();
-  loadPhotos();
-});
 
 // ===== Tab 切换 =====
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -108,7 +37,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ===== 加载留言 =====
+// ===== 留言相关 =====
 async function loadMessages() {
   try {
     const res = await apiFetch('/api/messages');
@@ -362,9 +291,5 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ===== 初始化 =====
-async function init() {
-  await checkLogin();
-  await loadMessages();
-  await loadPhotos();
-}
-init();
+loadMessages();
+loadPhotos();
