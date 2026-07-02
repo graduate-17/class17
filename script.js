@@ -397,7 +397,7 @@ function renderClassmates(classmates) {
   let html = `
     <div style="background:#fcf8f0; border-radius:12px; padding:20px; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
       <h2 style="margin-bottom:16px; color:#2d2a24; font-size:1.2rem;">
-        <i class="fas fa-address-book" style="color:#b8860b;"></i> 班级通讯录
+        <i class="fas fa-address-book" style="color:#b8860b;"></i> 班级通讯录--我发现好像没有老师的位置🤔
       </h2>
       <div style="overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
