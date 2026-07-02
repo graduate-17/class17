@@ -583,18 +583,18 @@ function drawTree(fruitCount) {
   ctx.scale(dpr, dpr);
 
   const centerX = size / 2;
-  const groundY = size * 0.85;
-  const trunkWidth = size * 0.08;
-  const trunkHeight = size * 0.25;
+  const groundY = size * 0.88;          // 地面略降
+  const trunkWidth = size * 0.09;
+  const trunkHeight = size * 0.22;
 
-  // 草地
+  // ---- 草地 ----
   const grassGrad = ctx.createLinearGradient(0, groundY, 0, size);
   grassGrad.addColorStop(0, '#7cb342');
   grassGrad.addColorStop(1, '#558b2f');
   ctx.fillStyle = grassGrad;
   ctx.fillRect(0, groundY, size, size - groundY);
 
-  // 树干
+  // ---- 树干 ----
   const trunkGrad = ctx.createLinearGradient(centerX - trunkWidth/2, 0, centerX + trunkWidth/2, 0);
   trunkGrad.addColorStop(0, '#5d4037');
   trunkGrad.addColorStop(0.5, '#795548');
@@ -612,12 +612,14 @@ function drawTree(fruitCount) {
   ctx.ellipse(centerX, groundY, trunkWidth * 0.8, trunkWidth * 0.3, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 树冠
-  const crownY = groundY - trunkHeight - size * 0.05;
-  const crownRadius = size * 0.32;
+  // ---- 树冠（上移，露出树干顶部） ----
+  const crownY = groundY - trunkHeight - size * 0.18;  // 上移
+  const crownRadius = size * 0.30;                     // 稍小一点
+
   ctx.shadowColor = 'rgba(0,0,0,0.15)';
   ctx.shadowBlur = 20;
   ctx.shadowOffsetY = 6;
+
   const crownGrad = ctx.createRadialGradient(
     centerX - crownRadius * 0.2, crownY - crownRadius * 0.3, crownRadius * 0.1,
     centerX, crownY, crownRadius
@@ -629,23 +631,27 @@ function drawTree(fruitCount) {
   ctx.beginPath();
   ctx.arc(centerX, crownY, crownRadius, 0, Math.PI * 2);
   ctx.fill();
+
+  // 辅助树冠（增加立体感）
   ctx.fillStyle = 'rgba(76, 175, 80, 0.5)';
   ctx.beginPath();
-  ctx.arc(centerX - crownRadius * 0.4, crownY - crownRadius * 0.2, crownRadius * 0.65, 0, Math.PI * 2);
+  ctx.arc(centerX - crownRadius * 0.4, crownY - crownRadius * 0.2, crownRadius * 0.6, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(centerX + crownRadius * 0.4, crownY - crownRadius * 0.15, crownRadius * 0.6, 0, Math.PI * 2);
+  ctx.arc(centerX + crownRadius * 0.4, crownY - crownRadius * 0.15, crownRadius * 0.55, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(centerX, crownY - crownRadius * 0.5, crownRadius * 0.7, 0, Math.PI * 2);
+  ctx.arc(centerX, crownY - crownRadius * 0.5, crownRadius * 0.65, 0, Math.PI * 2);
   ctx.fill();
+
+  // 高光
   ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(255,255,255,0.08)';
   ctx.beginPath();
-  ctx.arc(centerX - crownRadius * 0.3, crownY - crownRadius * 0.4, crownRadius * 0.5, 0, Math.PI * 2);
+  ctx.arc(centerX - crownRadius * 0.3, crownY - crownRadius * 0.4, crownRadius * 0.45, 0, Math.PI * 2);
   ctx.fill();
 
-  // 果实
+  // ---- 果实 ----
   const maxFruits = Math.min(fruitCount, 50);
   fruitCountSpan.textContent = maxFruits;
   if (maxFruits > 0) {
@@ -710,6 +716,8 @@ function drawTree(fruitCount) {
       ctx.fill();
     }
   }
+
+  // ---- 树底阴影 ----
   ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(0,0,0,0.08)';
   ctx.beginPath();
