@@ -467,7 +467,7 @@ header .subtitle {
   resize: vertical;
 }
 
-button[type="submit"] {
+button[type="submit"], #submitMessageBtn {
   background: #2d2a24;
   color: #f7f3eb;
   border: none;
@@ -480,10 +480,10 @@ button[type="submit"] {
   width: 100%;
   letter-spacing: 1px;
 }
-button[type="submit"]:hover {
+button[type="submit"]:hover, #submitMessageBtn:hover {
   background: #4a443c;
 }
-button[type="submit"] i {
+button[type="submit"] i, #submitMessageBtn i {
   margin-right: 8px;
 }
 
