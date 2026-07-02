@@ -629,3 +629,50 @@ footer {
     padding: 3px 10px;
   }
 }
+/* ===== 同学录 ===== */
+.classmates-wrapper {
+  padding: 10px 0 20px;
+}
+.classmates-wrapper table input:focus {
+  outline: none;
+  border-color: #b8860b;
+}
+.classmates-wrapper .save-btn:hover {
+  background: #4a443c;
+}
+.classmates-wrapper .save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.classmates-wrapper .detail-btn:hover {
+  color: #2d2a24 !important;
+}
+.classmates-wrapper .edit-btn:hover {
+  color: #2563eb !important;
+}
+.classmates-wrapper .cancel-btn:hover {
+  color: #b34a4a !important;
+}
+@media (max-width: 640px) {
+  .classmates-wrapper table {
+    font-size: 0.8rem;
+  }
+  .classmates-wrapper table th,
+  .classmates-wrapper table td {
+    padding: 6px 8px;
+  }
+  .classmates-wrapper table input {
+    font-size: 0.8rem;
+    padding: 4px 6px;
+  }
+  .classmates-wrapper .save-btn {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+  .classmates-wrapper .detail-btn,
+  .classmates-wrapper .edit-btn,
+  .classmates-wrapper .cancel-btn {
+    font-size: 0.7rem !important;
+    padding: 2px 4px !important;
+  }
+}

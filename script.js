@@ -396,7 +396,7 @@ async function loadClassmates() {
 function renderClassmates(classmates) {
   const container = document.getElementById('classmatesContainer');
 
-  // ===== 创建模态框 =====
+  // ===== 模态框 =====
   if (!document.getElementById('classmateModal')) {
     const modalHTML = `
       <div id="classmateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
@@ -418,38 +418,47 @@ function renderClassmates(classmates) {
   let html = `
     <div style="background:#fcf8f0; border-radius:12px; padding:20px; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
       <h2 style="margin-bottom:16px; color:#2d2a24; font-size:1.2rem;">
-        <i class="fas fa-address-book" style="color:#b8860b;"></i> 班级通讯录--我发现好像没有老师的位置🤔
+        <i class="fas fa-address-book" style="color:#b8860b;"></i> 班级通讯录
       </h2>
       <div style="overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
           <thead>
             <tr style="background:#2d2a24; color:#f7f3eb;">
-              <th style="padding:10px 12px; text-align:left; width:80px;">学号</th>
+              <th style="padding:10px 12px; text-align:left; width:60px;">学号</th>
               <th style="padding:10px 12px; text-align:left;">姓名</th>
-              <th style="padding:10px 12px; text-align:left;">联系方式</th>
-              <th style="padding:10px 12px; text-align:center; width:70px;">操作</th>
+              <th style="padding:10px 12px; text-align:center; width:120px;">操作</th>
             </tr>
           </thead>
           <tbody>
   `;
 
   classmates.forEach(item => {
+    const displayName = item.name || '未填写';
     html += `
       <tr style="border-bottom:1px solid #efe8dd;" data-id="${item.id}">
-        <td style="padding:8px 12px; font-weight:600; color:#b8860b; white-space:nowrap;">
-          ${item.id}
-          <span class="detail-btn" data-id="${item.id}" style="cursor:pointer; color:#b8860b; font-size:0.8rem; margin-left:4px;">
-            <i class="fas fa-info-circle"></i>
-          </span>
-        </td>
+        <td style="padding:8px 12px; font-weight:600; color:#b8860b;">${item.id}</td>
         <td style="padding:8px 12px;">
-          <input type="text" class="class-name-input" value="${escapeHtml(item.name || '')}" placeholder="姓名" maxlength="20" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
-        </td>
-        <td style="padding:8px 12px;">
-          <input type="text" class="class-contact-input" value="${escapeHtml(item.contact || '')}" placeholder="手机/QQ/微信" maxlength="50" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
+          <span class="view-name">${escapeHtml(displayName)}</span>
+          <div class="edit-fields" style="display:none;">
+            <input type="text" class="class-name-input" value="${escapeHtml(item.name || '')}" placeholder="姓名" maxlength="20" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
+          </div>
         </td>
         <td style="padding:8px 12px; text-align:center;">
-          <button class="class-save-btn" data-id="${item.id}" style="background:#2d2a24; color:#f7f3eb; border:none; padding:4px 14px; border-radius:20px; cursor:pointer; font-size:0.8rem;">保存</button>
+          <div class="view-actions">
+            <button class="detail-btn" data-id="${item.id}" style="background:none; border:none; color:#b8860b; cursor:pointer; font-size:0.85rem; padding:4px 8px;">
+              <i class="fas fa-info-circle"></i> 详情
+            </button>
+            <button class="edit-btn" data-id="${item.id}" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.85rem; padding:4px 8px;">
+              <i class="fas fa-edit"></i> 编辑
+            </button>
+          </div>
+          <div class="edit-actions" style="display:none;">
+            <div style="margin-bottom:4px;">
+              <input type="text" class="class-contact-input" value="${escapeHtml(item.contact || '')}" placeholder="联系方式" maxlength="50" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
+            </div>
+            <button class="save-btn" data-id="${item.id}" style="background:#2d2a24; color:#f7f3eb; border:none; padding:4px 14px; border-radius:20px; cursor:pointer; font-size:0.8rem;">保存</button>
+            <button class="cancel-btn" data-id="${item.id}" style="background:none; border:none; color:#6b7280; cursor:pointer; font-size:0.8rem; padding:4px 8px;">取消</button>
+          </div>
         </td>
       </tr>
     `;
@@ -480,48 +489,86 @@ function renderClassmates(classmates) {
     }
   });
 
-  // ===== 保存按钮 =====
-  document.querySelectorAll('.class-save-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const id = parseInt(this.dataset.id, 10);
-      const row = this.closest('tr');
-      const nameInput = row.querySelector('.class-name-input');
-      const contactInput = row.querySelector('.class-contact-input');
-      const name = nameInput.value.trim();
-      const contact = contactInput.value.trim();
+  // ===== 事件委托：编辑按钮 =====
+  container.addEventListener('click', function(e) {
+    const btn = e.target.closest('.edit-btn');
+    if (btn) {
+      const row = btn.closest('tr');
+      row.querySelector('.view-name').style.display = 'none';
+      row.querySelector('.view-actions').style.display = 'none';
+      row.querySelector('.edit-fields').style.display = 'block';
+      row.querySelector('.edit-actions').style.display = 'block';
+    }
+  });
 
-      if (!name && !contact) {
-        showClassStatus('请至少填写姓名或联系方式', 'error');
-        return;
+  // ===== 事件委托：取消按钮 =====
+  container.addEventListener('click', function(e) {
+    const btn = e.target.closest('.cancel-btn');
+    if (btn) {
+      const row = btn.closest('tr');
+      const id = parseInt(btn.dataset.id, 10);
+      const data = classmates.find(item => item.id === id);
+      if (data) {
+        row.querySelector('.view-name').textContent = data.name || '未填写';
+        row.querySelector('.class-name-input').value = data.name || '';
+        row.querySelector('.class-contact-input').value = data.contact || '';
       }
+      row.querySelector('.view-name').style.display = 'inline';
+      row.querySelector('.view-actions').style.display = 'inline-block';
+      row.querySelector('.edit-fields').style.display = 'none';
+      row.querySelector('.edit-actions').style.display = 'none';
+    }
+  });
 
-      this.disabled = true;
-      this.textContent = '保存中...';
-      try {
-        const res = await apiFetch(`/api/classmates/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify({ name, contact })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showClassStatus(`学号 ${id} 保存成功！`, 'success');
-          nameInput.value = data.data.name || '';
-          contactInput.value = data.data.contact || '';
-          const idx = classmates.findIndex(item => item.id === id);
-          if (idx !== -1) {
-            classmates[idx].name = data.data.name || '';
-            classmates[idx].contact = data.data.contact || '';
-          }
-        } else {
-          showClassStatus(data.error || '保存失败', 'error');
+  // ===== 事件委托：保存按钮 =====
+  container.addEventListener('click', async function(e) {
+    const btn = e.target.closest('.save-btn');
+    if (!btn) return;
+
+    const id = parseInt(btn.dataset.id, 10);
+    const row = btn.closest('tr');
+    const nameInput = row.querySelector('.class-name-input');
+    const contactInput = row.querySelector('.class-contact-input');
+    const name = nameInput.value.trim();
+    const contact = contactInput.value.trim();
+
+    if (!name && !contact) {
+      showClassStatus('请至少填写姓名或联系方式', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '保存中...';
+    try {
+      const res = await apiFetch(`/api/classmates/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name, contact })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showClassStatus(`学号 ${id} 保存成功！`, 'success');
+        const idx = classmates.findIndex(item => item.id === id);
+        if (idx !== -1) {
+          classmates[idx].name = data.data.name || '';
+          classmates[idx].contact = data.data.contact || '';
         }
-      } catch (err) {
-        showClassStatus('网络错误，请重试', 'error');
-      } finally {
-        this.disabled = false;
-        this.textContent = '保存';
+        // 更新视图
+        row.querySelector('.view-name').textContent = data.data.name || '未填写';
+        row.querySelector('.class-name-input').value = data.data.name || '';
+        row.querySelector('.class-contact-input').value = data.data.contact || '';
+        row.querySelector('.view-name').style.display = 'inline';
+        row.querySelector('.view-actions').style.display = 'inline-block';
+        row.querySelector('.edit-fields').style.display = 'none';
+        row.querySelector('.edit-actions').style.display = 'none';
+      } else {
+        showClassStatus(data.error || '保存失败', 'error');
       }
-    });
+    } catch (err) {
+      showClassStatus('网络错误，请重试', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '保存';
+    }
   });
 }
 
