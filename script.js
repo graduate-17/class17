@@ -2,15 +2,17 @@ const API_BASE = 'https://caiyz.dpdns.org';
 const IMGBB_API_KEY = '0bb35dd01d42e7df850d535d2c79e8f6';
 
 // ===== DOM 引用 =====
-const leftPage = document.getElementById('leftPage');
-const rightPage = document.getElementById('rightPage');
-const leftContent = document.getElementById('leftContent');
-const rightContent = document.getElementById('rightContent');
+const page = document.getElementById('page');
+const pageContent = document.getElementById('pageContent');
 const pageIndicator = document.getElementById('pageIndicator');
 
 let allMessages = [];
 let currentPage = 0;
 const ITEMS_PER_PAGE = 4;
+
+function getTotalPages() {
+  return Math.max(2, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 2);
+}
 
 // ===== 封装的 fetch =====
 async function apiFetch(url, options = {}) {
@@ -65,7 +67,7 @@ window.prevPage = function() {
 };
 
 window.nextPage = function() {
-  const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
+  const total = getTotalPages();
   if (currentPage < total - 1) {
     renderPage(currentPage + 1);
   }
@@ -84,18 +86,17 @@ async function loadMessages() {
     updateButtons();
   } catch (err) {
     console.error('加载留言失败:', err);
-    leftContent.innerHTML = `<div class="empty-msg">加载失败，请刷新页面</div>`;
-    rightContent.innerHTML = `<div class="empty-msg">加载失败，请刷新页面</div>`;
+    pageContent.innerHTML = `<div class="empty-msg">加载失败，请刷新页面</div>`;
   }
 }
 
 function renderPage(pageIndex) {
-  const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
-  const current = Math.min(Math.max(pageIndex, 0), total - 1);
+  const totalPages = getTotalPages();
+  const current = Math.min(Math.max(pageIndex, 0), totalPages - 1);
 
-  let leftHtml = '';
+  let pageHtml = '';
   if (current === 0) {
-    leftHtml = `
+    pageHtml = `
       <div class="cover-content">
         <div class="big-icon"><i class="fas fa-book-open"></i></div>
         <div class="big-title">留言册</div>
@@ -103,28 +104,8 @@ function renderPage(pageIndex) {
         <div class="big-sub">Class 17 · 2026</div>
       </div>
     `;
-  } else {
-    const start = (current - 1) * ITEMS_PER_PAGE;
-    const end = Math.min(start + ITEMS_PER_PAGE, allMessages.length);
-    const items = allMessages.slice(start, end);
-    if (items.length === 0) {
-      leftHtml = `<div class="empty-msg">这一页是空的</div>`;
-    } else {
-      leftHtml = items.map(msg => `
-        <div class="msg-item">
-          <div class="msg-author">${escapeHtml(msg.author)}</div>
-          <div class="msg-content">${escapeHtml(msg.content)}</div>
-          <div class="msg-time">${formatTime(msg.created_at)}</div>
-        </div>
-      `).join('');
-    }
-  }
-  leftContent.innerHTML = leftHtml;
-
-  let rightHtml = '';
-  const totalPages = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
-  if (current === totalPages - 1) {
-    rightHtml = `
+  } else if (current === totalPages - 1) {
+    pageHtml = `
       <div class="cover-content">
         <div class="big-icon"><i class="fas fa-heart"></i></div>
         <div class="big-title">愿君珍重</div>
@@ -133,13 +114,13 @@ function renderPage(pageIndex) {
       </div>
     `;
   } else {
-    const start = current * ITEMS_PER_PAGE;
+    const start = (current - 1) * ITEMS_PER_PAGE;
     const end = Math.min(start + ITEMS_PER_PAGE, allMessages.length);
     const items = allMessages.slice(start, end);
     if (items.length === 0) {
-      rightHtml = `<div class="empty-msg">这一页是空的</div>`;
+      pageHtml = `<div class="empty-msg">这一页是空的</div>`;
     } else {
-      rightHtml = items.map(msg => `
+      pageHtml = items.map(msg => `
         <div class="msg-item">
           <div class="msg-author">${escapeHtml(msg.author)}</div>
           <div class="msg-content">${escapeHtml(msg.content)}</div>
@@ -148,18 +129,15 @@ function renderPage(pageIndex) {
       `).join('');
     }
   }
-  rightContent.innerHTML = rightHtml;
 
-  const pageNumLeft = current === 0 ? '' : `<div class="page-number">${current}</div>`;
-  const pageNumRight = current === totalPages - 1 ? '' : `<div class="page-number">${current + 1}</div>`;
-  leftContent.innerHTML += pageNumLeft;
-  rightContent.innerHTML += pageNumRight;
+  pageContent.innerHTML = pageHtml;
+  if (current > 0 && current < totalPages - 1) {
+    pageContent.innerHTML += `<div class="page-number">${current}</div>`;
+  }
 
-  leftPage.classList.remove('page-flip');
-  rightPage.classList.remove('page-flip');
-  void leftPage.offsetWidth;
-  leftPage.classList.add('page-flip');
-  rightPage.classList.add('page-flip');
+  page.classList.remove('page-flip');
+  void page.offsetWidth;
+  page.classList.add('page-flip');
 
   pageIndicator.textContent = `${current + 1} / ${totalPages}`;
   currentPage = current;
@@ -167,7 +145,7 @@ function renderPage(pageIndex) {
 }
 
 function updateButtons() {
-  const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
+  const total = getTotalPages();
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   if (prevBtn) prevBtn.disabled = currentPage === 0;
@@ -228,8 +206,9 @@ messageForm.addEventListener('submit', async function(e) {
     authorInput.value = '';
     contentInput.value = '';
     await loadMessages();
-    const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
-    renderPage(total - 1);
+    const total = getTotalPages();
+    const targetPage = allMessages.length > 0 ? Math.max(1, total - 2) : 0;
+    renderPage(targetPage);
   } catch (err) {
     showMessage('网络错误，请重试', 'error');
   }
