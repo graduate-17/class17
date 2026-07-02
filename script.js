@@ -377,7 +377,7 @@ photoForm.addEventListener('submit', async function(e) {
 });
 
 // ============================================================
-//  同学录
+//  同学录（弹窗编辑）
 // ============================================================
 async function loadClassmates() {
   const container = document.getElementById('classmatesContainer');
@@ -396,21 +396,42 @@ async function loadClassmates() {
 function renderClassmates(classmates) {
   const container = document.getElementById('classmatesContainer');
 
-  // ===== 模态框 =====
+  // ===== 创建模态框（如果不存在） =====
   if (!document.getElementById('classmateModal')) {
     const modalHTML = `
       <div id="classmateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:#fcf8f0; border-radius:16px; padding:24px; max-width:340px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,0.3); position:relative;">
-          <button onclick="document.getElementById('classmateModal').style.display='none'" style="position:absolute; top:8px; right:12px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#2d2a24;">&times;</button>
+        <div style="background:#fcf8f0; border-radius:16px; padding:24px; max-width:360px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,0.3); position:relative;">
+          <button class="modal-close-btn" style="position:absolute; top:8px; right:12px; background:none; border:none; font-size:1.6rem; cursor:pointer; color:#2d2a24; line-height:1;">&times;</button>
           <h3 style="margin-bottom:12px; color:#2d2a24;">学号 <span id="modalId"></span></h3>
-          <p style="margin-bottom:6px;"><strong>姓名：</strong><span id="modalName"></span></p>
-          <p><strong>联系方式：</strong><span id="modalContact"></span></p>
+          <div id="modalViewMode">
+            <p style="margin-bottom:6px;"><strong>姓名：</strong><span id="modalName"></span></p>
+            <p><strong>联系方式：</strong><span id="modalContact"></span></p>
+          </div>
+          <div id="modalEditMode" style="display:none;">
+            <div class="form-group" style="margin-bottom:10px;">
+              <label style="font-weight:500; font-size:0.9rem;">姓名</label>
+              <input type="text" id="modalEditName" placeholder="姓名" maxlength="20" style="width:100%; padding:8px 12px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.95rem; box-sizing:border-box;">
+            </div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <label style="font-weight:500; font-size:0.9rem;">联系方式</label>
+              <input type="text" id="modalEditContact" placeholder="手机/QQ/微信" maxlength="50" style="width:100%; padding:8px 12px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.95rem; box-sizing:border-box;">
+            </div>
+          </div>
+          <div id="modalActions" style="margin-top:16px; text-align:right;">
+            <button class="modal-btn modal-close-btn-bottom" style="background:#6b7280; color:#fff; border:none; padding:6px 18px; border-radius:20px; cursor:pointer; font-size:0.9rem;">关闭</button>
+            <button id="modalSaveBtn" style="display:none; background:#2d2a24; color:#f7f3eb; border:none; padding:6px 18px; border-radius:20px; cursor:pointer; font-size:0.9rem; margin-left:8px;">保存</button>
+          </div>
         </div>
       </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.getElementById('classmateModal').addEventListener('click', function(e) {
-      if (e.target === this) this.style.display = 'none';
+
+    // 绑定关闭事件
+    const modal = document.getElementById('classmateModal');
+    modal.addEventListener('click', function(e) {
+      if (e.target === this || e.target.classList.contains('modal-close-btn') || e.target.classList.contains('modal-close-btn-bottom')) {
+        this.style.display = 'none';
+      }
     });
   }
 
@@ -426,7 +447,7 @@ function renderClassmates(classmates) {
             <tr style="background:#2d2a24; color:#f7f3eb;">
               <th style="padding:10px 12px; text-align:left; width:60px;">学号</th>
               <th style="padding:10px 12px; text-align:left;">姓名</th>
-              <th style="padding:10px 12px; text-align:center; width:120px;">操作</th>
+              <th style="padding:10px 12px; text-align:center; width:160px;">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -439,26 +460,14 @@ function renderClassmates(classmates) {
         <td style="padding:8px 12px; font-weight:600; color:#b8860b;">${item.id}</td>
         <td style="padding:8px 12px;">
           <span class="view-name">${escapeHtml(displayName)}</span>
-          <div class="edit-fields" style="display:none;">
-            <input type="text" class="class-name-input" value="${escapeHtml(item.name || '')}" placeholder="姓名" maxlength="20" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
-          </div>
         </td>
         <td style="padding:8px 12px; text-align:center;">
-          <div class="view-actions">
-            <button class="detail-btn" data-id="${item.id}" style="background:none; border:none; color:#b8860b; cursor:pointer; font-size:0.85rem; padding:4px 8px;">
-              <i class="fas fa-info-circle"></i> 详情
-            </button>
-            <button class="edit-btn" data-id="${item.id}" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.85rem; padding:4px 8px;">
-              <i class="fas fa-edit"></i> 编辑
-            </button>
-          </div>
-          <div class="edit-actions" style="display:none;">
-            <div style="margin-bottom:4px;">
-              <input type="text" class="class-contact-input" value="${escapeHtml(item.contact || '')}" placeholder="联系方式" maxlength="50" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
-            </div>
-            <button class="save-btn" data-id="${item.id}" style="background:#2d2a24; color:#f7f3eb; border:none; padding:4px 14px; border-radius:20px; cursor:pointer; font-size:0.8rem;">保存</button>
-            <button class="cancel-btn" data-id="${item.id}" style="background:none; border:none; color:#6b7280; cursor:pointer; font-size:0.8rem; padding:4px 8px;">取消</button>
-          </div>
+          <button class="detail-btn" data-id="${item.id}" style="background:none; border:none; color:#b8860b; cursor:pointer; font-size:0.85rem; padding:4px 8px;">
+            <i class="fas fa-info-circle"></i> 详情
+          </button>
+          <button class="edit-btn" data-id="${item.id}" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.85rem; padding:4px 8px;">
+            <i class="fas fa-edit"></i> 编辑
+          </button>
         </td>
       </tr>
     `;
@@ -474,101 +483,100 @@ function renderClassmates(classmates) {
 
   container.innerHTML = html;
 
-  // ===== 事件委托：详情按钮 =====
+  // ===== 事件：详情 & 编辑 =====
   container.addEventListener('click', function(e) {
-    const btn = e.target.closest('.detail-btn');
-    if (btn) {
-      const id = parseInt(btn.dataset.id, 10);
+    const detailBtn = e.target.closest('.detail-btn');
+    const editBtn = e.target.closest('.edit-btn');
+
+    if (detailBtn || editBtn) {
+      const id = parseInt((detailBtn || editBtn).dataset.id, 10);
       const data = classmates.find(item => item.id === id);
-      if (data) {
-        document.getElementById('modalId').textContent = data.id;
-        document.getElementById('modalName').textContent = data.name || '未填写';
-        document.getElementById('modalContact').textContent = data.contact || '未填写';
-        document.getElementById('classmateModal').style.display = 'flex';
+      if (!data) return;
+
+      const modal = document.getElementById('classmateModal');
+      const modalId = document.getElementById('modalId');
+      const modalName = document.getElementById('modalName');
+      const modalContact = document.getElementById('modalContact');
+      const viewMode = document.getElementById('modalViewMode');
+      const editMode = document.getElementById('modalEditMode');
+      const saveBtn = document.getElementById('modalSaveBtn');
+      const editName = document.getElementById('modalEditName');
+      const editContact = document.getElementById('modalEditContact');
+
+      modalId.textContent = data.id;
+
+      if (detailBtn) {
+        // 查看模式
+        modalName.textContent = data.name || '未填写';
+        modalContact.textContent = data.contact || '未填写';
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+        saveBtn.style.display = 'none';
+        // 更新底部按钮文本
+        document.querySelector('.modal-close-btn-bottom').textContent = '关闭';
+      } else if (editBtn) {
+        // 编辑模式
+        editName.value = data.name || '';
+        editContact.value = data.contact || '';
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+        saveBtn.style.display = 'inline-block';
+        document.querySelector('.modal-close-btn-bottom').textContent = '取消';
+        // 保存按钮绑定数据
+        saveBtn._id = data.id;
+        saveBtn._data = data;
       }
+
+      modal.style.display = 'flex';
     }
   });
 
-  // ===== 事件委托：编辑按钮 =====
-  container.addEventListener('click', function(e) {
-    const btn = e.target.closest('.edit-btn');
-    if (btn) {
-      const row = btn.closest('tr');
-      row.querySelector('.view-name').style.display = 'none';
-      row.querySelector('.view-actions').style.display = 'none';
-      row.querySelector('.edit-fields').style.display = 'block';
-      row.querySelector('.edit-actions').style.display = 'block';
-    }
-  });
-
-  // ===== 事件委托：取消按钮 =====
-  container.addEventListener('click', function(e) {
-    const btn = e.target.closest('.cancel-btn');
-    if (btn) {
-      const row = btn.closest('tr');
-      const id = parseInt(btn.dataset.id, 10);
-      const data = classmates.find(item => item.id === id);
-      if (data) {
-        row.querySelector('.view-name').textContent = data.name || '未填写';
-        row.querySelector('.class-name-input').value = data.name || '';
-        row.querySelector('.class-contact-input').value = data.contact || '';
-      }
-      row.querySelector('.view-name').style.display = 'inline';
-      row.querySelector('.view-actions').style.display = 'inline-block';
-      row.querySelector('.edit-fields').style.display = 'none';
-      row.querySelector('.edit-actions').style.display = 'none';
-    }
-  });
-
-  // ===== 事件委托：保存按钮 =====
-  container.addEventListener('click', async function(e) {
-    const btn = e.target.closest('.save-btn');
-    if (!btn) return;
-
-    const id = parseInt(btn.dataset.id, 10);
-    const row = btn.closest('tr');
-    const nameInput = row.querySelector('.class-name-input');
-    const contactInput = row.querySelector('.class-contact-input');
-    const name = nameInput.value.trim();
-    const contact = contactInput.value.trim();
+  // ===== 保存按钮事件（单独绑定，因为它是动态创建的，但使用事件委托） =====
+  document.getElementById('modalSaveBtn')?.addEventListener('click', async function() {
+    const id = this._id;
+    const data = this._data;
+    const name = document.getElementById('modalEditName').value.trim();
+    const contact = document.getElementById('modalEditContact').value.trim();
 
     if (!name && !contact) {
       showClassStatus('请至少填写姓名或联系方式', 'error');
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = '保存中...';
+    this.disabled = true;
+    this.textContent = '保存中...';
     try {
       const res = await apiFetch(`/api/classmates/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ name, contact })
       });
-      const data = await res.json();
-      if (data.success) {
+      const result = await res.json();
+      if (result.success) {
         showClassStatus(`学号 ${id} 保存成功！`, 'success');
+        // 更新列表数据
         const idx = classmates.findIndex(item => item.id === id);
         if (idx !== -1) {
-          classmates[idx].name = data.data.name || '';
-          classmates[idx].contact = data.data.contact || '';
+          classmates[idx].name = result.data.name || '';
+          classmates[idx].contact = result.data.contact || '';
         }
-        // 更新视图
-        row.querySelector('.view-name').textContent = data.data.name || '未填写';
-        row.querySelector('.class-name-input').value = data.data.name || '';
-        row.querySelector('.class-contact-input').value = data.data.contact || '';
-        row.querySelector('.view-name').style.display = 'inline';
-        row.querySelector('.view-actions').style.display = 'inline-block';
-        row.querySelector('.edit-fields').style.display = 'none';
-        row.querySelector('.edit-actions').style.display = 'none';
+        // 重新渲染表格
+        renderClassmates(classmates);
+        // 关闭模态框
+        document.getElementById('classmateModal').style.display = 'none';
       } else {
-        showClassStatus(data.error || '保存失败', 'error');
+        showClassStatus(result.error || '保存失败', 'error');
       }
     } catch (err) {
       showClassStatus('网络错误，请重试', 'error');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '保存';
+      this.disabled = false;
+      this.textContent = '保存';
     }
+  });
+
+  // ===== 底部关闭/取消按钮 =====
+  document.querySelector('.modal-close-btn-bottom')?.addEventListener('click', function() {
+    document.getElementById('classmateModal').style.display = 'none';
   });
 }
 
