@@ -188,8 +188,9 @@ const messageForm = document.getElementById('messageForm');
 const authorInput = document.getElementById('authorInput');
 const contentInput = document.getElementById('contentInput');
 const formMessage = document.getElementById('formMessage');
+const submitMessageBtn = document.getElementById('submitMessageBtn');
 
-messageForm.addEventListener('submit', async function(e) {
+async function handleMessageSubmit(e) {
   e.preventDefault();
   const author = authorInput.value.trim();
   const content = contentInput.value.trim();
@@ -216,13 +217,21 @@ messageForm.addEventListener('submit', async function(e) {
     authorInput.value = '';
     contentInput.value = '';
     await loadMessages();
-    const total = getTotalPages();
-    const targetPage = allMessages.length > 0 ? Math.max(1, total - 2) : 0;
-    renderPage(targetPage);
   } catch (err) {
     showMessage('网络错误，请重试', 'error');
   }
+}
+
+messageForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  handleMessageSubmit(e);
 });
+
+if (submitMessageBtn) {
+  submitMessageBtn.addEventListener('click', function() {
+    messageForm.requestSubmit();
+  });
+}
 
 function showMessage(text, type) {
   formMessage.textContent = text;

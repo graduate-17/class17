@@ -26,6 +26,9 @@
     <!-- ===== 留言册 ===== -->
     <div id="tab-book" class="tab-content active">
       <div class="book-wrapper">
+        <button class="page-btn prev-btn" id="prevBtn" onclick="prevPage()">
+          <i class="fas fa-chevron-left"></i>
+        </button>
         <div class="book" id="book">
           <div class="book-spine"></div>
           <div class="page single-page" id="page">
@@ -33,13 +36,10 @@
               <div class="page-number">封面</div>
             </div>
           </div>
-          <button class="page-btn prev-btn" id="prevBtn" onclick="prevPage()">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <button class="page-btn next-btn" id="nextBtn" onclick="nextPage()">
-            <i class="fas fa-chevron-right"></i>
-          </button>
         </div>
+        <button class="page-btn next-btn" id="nextBtn" onclick="nextPage()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
       <div class="page-indicator" id="pageIndicator">1 / 1</div>
 
@@ -52,7 +52,7 @@
           <div class="form-group">
             <textarea id="contentInput" placeholder="写下你想说的话..." rows="3" maxlength="500" required></textarea>
           </div>
-          <button type="submit"><i class="fas fa-feather-alt"></i> 发送祝福</button>
+          <button type="button" id="submitMessageBtn"><i class="fas fa-feather-alt"></i> 发送祝福</button>
         </form>
         <div id="formMessage" class="form-message"></div>
       </section>
@@ -99,6 +99,6 @@
     </footer>
   </div>
 
-  <script src="./script.js?v=6"></script>
+  <script src="./script.js?v=7"></script>
 </body>
 </html>
