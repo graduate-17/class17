@@ -597,3 +597,35 @@ footer {
   .msg-item .msg-content { font-size: 0.8rem; }
   .cover-content .big-title { font-size: 1.1rem; }
 }
+/* ===== 同学录 ===== */
+.classmates-wrapper {
+  padding: 10px 0 20px;
+}
+.classmates-wrapper table input:focus {
+  outline: none;
+  border-color: #b8860b;
+}
+.classmates-wrapper .class-save-btn:hover {
+  background: #4a443c;
+}
+.classmates-wrapper .class-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 640px) {
+  .classmates-wrapper table {
+    font-size: 0.8rem;
+  }
+  .classmates-wrapper table th,
+  .classmates-wrapper table td {
+    padding: 6px 8px;
+  }
+  .classmates-wrapper table input {
+    font-size: 0.8rem;
+    padding: 4px 6px;
+  }
+  .classmates-wrapper .class-save-btn {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+}

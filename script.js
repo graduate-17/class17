@@ -25,15 +25,17 @@ async function apiFetch(url, options = {}) {
 }
 
 // ============================================================
-//  Tab 切换
+//  Tab 切换（支持三个标签页）
 // ============================================================
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     this.classList.add('active');
-    document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+    const tabId = 'tab-' + this.dataset.tab;
+    document.getElementById(tabId).classList.add('active');
     if (this.dataset.tab === 'photos') loadPhotos();
+    if (this.dataset.tab === 'classmates') loadClassmates();
   });
 });
 
@@ -53,7 +55,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-//  翻页函数（暴露为全局，供 onclick 调用）
+//  翻页函数
 // ============================================================
 window.prevPage = function() {
   if (currentPage > 0) {
@@ -90,7 +92,6 @@ function renderPage(pageIndex) {
   const total = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   const current = Math.min(Math.max(pageIndex, 0), total - 1);
 
-  // 左页
   let leftHtml = '';
   if (current === 0) {
     leftHtml = `
@@ -119,7 +120,6 @@ function renderPage(pageIndex) {
   }
   leftContent.innerHTML = leftHtml;
 
-  // 右页
   let rightHtml = '';
   const totalPages = Math.max(1, Math.ceil(allMessages.length / ITEMS_PER_PAGE) + 1);
   if (current === totalPages - 1) {
@@ -149,13 +149,11 @@ function renderPage(pageIndex) {
   }
   rightContent.innerHTML = rightHtml;
 
-  // 页码
   const pageNumLeft = current === 0 ? '' : `<div class="page-number">${current}</div>`;
   const pageNumRight = current === totalPages - 1 ? '' : `<div class="page-number">${current + 1}</div>`;
   leftContent.innerHTML += pageNumLeft;
   rightContent.innerHTML += pageNumRight;
 
-  // 翻页动画
   leftPage.classList.remove('page-flip');
   rightPage.classList.remove('page-flip');
   void leftPage.offsetWidth;
@@ -377,6 +375,117 @@ photoForm.addEventListener('submit', async function(e) {
     showPhotoMessage('网络错误: ' + err.message, 'error');
   }
 });
+
+// ============================================================
+//  同学录
+// ============================================================
+async function loadClassmates() {
+  const container = document.getElementById('classmatesContainer');
+  container.innerHTML = '<div class="loading">加载中...</div>';
+  try {
+    const res = await apiFetch('/api/classmates');
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    renderClassmates(data.data);
+  } catch (err) {
+    container.innerHTML = `<div class="loading">加载失败：${err.message}</div>`;
+  }
+}
+
+function renderClassmates(classmates) {
+  const container = document.getElementById('classmatesContainer');
+  let html = `
+    <div style="background:#fcf8f0; border-radius:12px; padding:20px; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+      <h2 style="margin-bottom:16px; color:#2d2a24; font-size:1.2rem;">
+        <i class="fas fa-address-book" style="color:#b8860b;"></i> 班级通讯录
+      </h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+          <thead>
+            <tr style="background:#2d2a24; color:#f7f3eb;">
+              <th style="padding:10px 12px; text-align:left; width:60px;">学号</th>
+              <th style="padding:10px 12px; text-align:left;">姓名</th>
+              <th style="padding:10px 12px; text-align:left;">联系方式</th>
+              <th style="padding:10px 12px; text-align:center; width:80px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+  `;
+  classmates.forEach(item => {
+    html += `
+      <tr style="border-bottom:1px solid #efe8dd;" data-id="${item.id}">
+        <td style="padding:8px 12px; font-weight:600; color:#b8860b;">${item.id}</td>
+        <td style="padding:8px 12px;">
+          <input type="text" class="class-name-input" value="${escapeHtml(item.name || '')}" placeholder="姓名" maxlength="20" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
+        </td>
+        <td style="padding:8px 12px;">
+          <input type="text" class="class-contact-input" value="${escapeHtml(item.contact || '')}" placeholder="手机/QQ/微信" maxlength="50" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
+        </td>
+        <td style="padding:8px 12px; text-align:center;">
+          <button class="class-save-btn" data-id="${item.id}" style="background:#2d2a24; color:#f7f3eb; border:none; padding:4px 14px; border-radius:20px; cursor:pointer; font-size:0.8rem;">保存</button>
+        </td>
+      </tr>
+    `;
+  });
+  html += `
+          </tbody>
+        </table>
+      </div>
+      <div id="classStatus" style="margin-top:12px; text-align:center; font-size:0.9rem;"></div>
+    </div>
+  `;
+  container.innerHTML = html;
+
+  // 绑定保存事件
+  document.querySelectorAll('.class-save-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = parseInt(this.dataset.id);
+      const row = this.closest('tr');
+      const nameInput = row.querySelector('.class-name-input');
+      const contactInput = row.querySelector('.class-contact-input');
+      const name = nameInput.value.trim();
+      const contact = contactInput.value.trim();
+
+      if (!name && !contact) {
+        showClassStatus('请至少填写姓名或联系方式', 'error');
+        return;
+      }
+
+      this.disabled = true;
+      this.textContent = '保存中...';
+      try {
+        const res = await apiFetch(`/api/classmates/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ name, contact })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showClassStatus(`学号 ${id} 保存成功！`, 'success');
+          nameInput.value = data.data.name || '';
+          contactInput.value = data.data.contact || '';
+        } else {
+          showClassStatus(data.error || '保存失败', 'error');
+        }
+      } catch (err) {
+        showClassStatus('网络错误，请重试', 'error');
+      } finally {
+        this.disabled = false;
+        this.textContent = '保存';
+      }
+    });
+  });
+}
+
+function showClassStatus(text, type) {
+  const el = document.getElementById('classStatus');
+  el.textContent = text;
+  el.style.color = type === 'success' ? '#2d7d46' : '#b34a4a';
+  if (type === 'success') {
+    setTimeout(() => {
+      el.textContent = '';
+    }, 3000);
+  }
+}
 
 // ============================================================
 //  初始化

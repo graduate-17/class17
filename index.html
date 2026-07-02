@@ -19,6 +19,7 @@
     <div class="tabs">
       <button class="tab-btn active" data-tab="book"><i class="fas fa-book"></i> 留言册</button>
       <button class="tab-btn" data-tab="photos"><i class="fas fa-images"></i> 照片墙</button>
+      <button class="tab-btn" data-tab="classmates"><i class="fas fa-address-book"></i> 同学录</button>
     </div>
 
     <!-- ===== 留言册 ===== -->
@@ -36,7 +37,6 @@
               <div class="page-number">封底</div>
             </div>
           </div>
-          <!-- ===== 翻页按钮使用内联 onclick ===== -->
           <button class="page-btn prev-btn" id="prevBtn" onclick="prevPage()">
             <i class="fas fa-chevron-left"></i>
           </button>
@@ -79,6 +79,15 @@
       </div>
       <div class="photo-grid" id="photoGrid">
         <div class="loading">加载照片中...</div>
+      </div>
+    </div>
+
+    <!-- ===== 同学录 ===== -->
+    <div id="tab-classmates" class="tab-content">
+      <div class="classmates-wrapper">
+        <div id="classmatesContainer">
+          <div class="loading">加载中...</div>
+        </div>
       </div>
     </div>
 
