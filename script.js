@@ -2,9 +2,15 @@ const API_BASE = 'https://caiyz.dpdns.org';
 const IMGBB_API_KEY = '0bb35dd01d42e7df850d535d2c79e8f6';
 
 // ===== DOM 引用 =====
-const page = document.getElementById('page');
-const pageContent = document.getElementById('pageContent');
+const page = document.getElementById('page') || document.getElementById('leftPage') || document.querySelector('.page');
+const pageContent = document.getElementById('pageContent') || document.getElementById('leftContent');
 const pageIndicator = document.getElementById('pageIndicator');
+
+function setPageContent(html) {
+  if (pageContent) {
+    pageContent.innerHTML = html;
+  }
+}
 
 let allMessages = [];
 let currentPage = 0;
@@ -86,7 +92,7 @@ async function loadMessages() {
     updateButtons();
   } catch (err) {
     console.error('加载留言失败:', err);
-    pageContent.innerHTML = `<div class="empty-msg">加载失败，请刷新页面</div>`;
+    setPageContent(`<div class="empty-msg">加载失败，请刷新页面</div>`);
   }
 }
 
@@ -130,14 +136,18 @@ function renderPage(pageIndex) {
     }
   }
 
-  pageContent.innerHTML = pageHtml;
+  let renderedHtml = pageHtml;
   if (current > 0 && current < totalPages - 1) {
-    pageContent.innerHTML += `<div class="page-number">${current}</div>`;
+    renderedHtml += `<div class="page-number">${current}</div>`;
   }
 
-  page.classList.remove('page-flip');
-  void page.offsetWidth;
-  page.classList.add('page-flip');
+  setPageContent(renderedHtml);
+
+  if (page) {
+    page.classList.remove('page-flip');
+    void page.offsetWidth;
+    page.classList.add('page-flip');
+  }
 
   pageIndicator.textContent = `${current + 1} / ${totalPages}`;
   currentPage = current;
