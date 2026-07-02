@@ -25,7 +25,7 @@ async function apiFetch(url, options = {}) {
 }
 
 // ============================================================
-//  Tab 切换（支持三个标签页）
+//  Tab 切换
 // ============================================================
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', function() {
@@ -388,12 +388,33 @@ async function loadClassmates() {
     if (!data.success) throw new Error(data.error);
     renderClassmates(data.data);
   } catch (err) {
+    console.error('加载同学录失败:', err);
     container.innerHTML = `<div class="loading">加载失败：${err.message}</div>`;
   }
 }
 
 function renderClassmates(classmates) {
   const container = document.getElementById('classmatesContainer');
+
+  // ===== 创建模态框 =====
+  if (!document.getElementById('classmateModal')) {
+    const modalHTML = `
+      <div id="classmateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:#fcf8f0; border-radius:16px; padding:24px; max-width:340px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,0.3); position:relative;">
+          <button onclick="document.getElementById('classmateModal').style.display='none'" style="position:absolute; top:8px; right:12px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#2d2a24;">&times;</button>
+          <h3 style="margin-bottom:12px; color:#2d2a24;">学号 <span id="modalId"></span></h3>
+          <p style="margin-bottom:6px;"><strong>姓名：</strong><span id="modalName"></span></p>
+          <p><strong>联系方式：</strong><span id="modalContact"></span></p>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.getElementById('classmateModal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+  }
+
+  // ===== 渲染表格 =====
   let html = `
     <div style="background:#fcf8f0; border-radius:12px; padding:20px; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
       <h2 style="margin-bottom:16px; color:#2d2a24; font-size:1.2rem;">
@@ -403,18 +424,24 @@ function renderClassmates(classmates) {
         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
           <thead>
             <tr style="background:#2d2a24; color:#f7f3eb;">
-              <th style="padding:10px 12px; text-align:left; width:60px;">学号</th>
+              <th style="padding:10px 12px; text-align:left; width:80px;">学号</th>
               <th style="padding:10px 12px; text-align:left;">姓名</th>
               <th style="padding:10px 12px; text-align:left;">联系方式</th>
-              <th style="padding:10px 12px; text-align:center; width:80px;">操作</th>
+              <th style="padding:10px 12px; text-align:center; width:70px;">操作</th>
             </tr>
           </thead>
           <tbody>
   `;
+
   classmates.forEach(item => {
     html += `
       <tr style="border-bottom:1px solid #efe8dd;" data-id="${item.id}">
-        <td style="padding:8px 12px; font-weight:600; color:#b8860b;">${item.id}</td>
+        <td style="padding:8px 12px; font-weight:600; color:#b8860b; white-space:nowrap;">
+          ${item.id}
+          <span class="detail-btn" data-id="${item.id}" style="cursor:pointer; color:#b8860b; font-size:0.8rem; margin-left:4px;">
+            <i class="fas fa-info-circle"></i>
+          </span>
+        </td>
         <td style="padding:8px 12px;">
           <input type="text" class="class-name-input" value="${escapeHtml(item.name || '')}" placeholder="姓名" maxlength="20" style="width:100%; padding:6px 10px; border:1px solid #ddd2c2; border-radius:6px; background:#fff; color:#2d2a24; font-size:0.9rem;">
         </td>
@@ -427,6 +454,7 @@ function renderClassmates(classmates) {
       </tr>
     `;
   });
+
   html += `
           </tbody>
         </table>
@@ -434,12 +462,28 @@ function renderClassmates(classmates) {
       <div id="classStatus" style="margin-top:12px; text-align:center; font-size:0.9rem;"></div>
     </div>
   `;
+
   container.innerHTML = html;
 
-  // 绑定保存事件
+  // ===== 事件委托：详情按钮 =====
+  container.addEventListener('click', function(e) {
+    const btn = e.target.closest('.detail-btn');
+    if (btn) {
+      const id = parseInt(btn.dataset.id, 10);
+      const data = classmates.find(item => item.id === id);
+      if (data) {
+        document.getElementById('modalId').textContent = data.id;
+        document.getElementById('modalName').textContent = data.name || '未填写';
+        document.getElementById('modalContact').textContent = data.contact || '未填写';
+        document.getElementById('classmateModal').style.display = 'flex';
+      }
+    }
+  });
+
+  // ===== 保存按钮 =====
   document.querySelectorAll('.class-save-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
-      const id = parseInt(this.dataset.id);
+      const id = parseInt(this.dataset.id, 10);
       const row = this.closest('tr');
       const nameInput = row.querySelector('.class-name-input');
       const contactInput = row.querySelector('.class-contact-input');
@@ -463,6 +507,11 @@ function renderClassmates(classmates) {
           showClassStatus(`学号 ${id} 保存成功！`, 'success');
           nameInput.value = data.data.name || '';
           contactInput.value = data.data.contact || '';
+          const idx = classmates.findIndex(item => item.id === id);
+          if (idx !== -1) {
+            classmates[idx].name = data.data.name || '';
+            classmates[idx].contact = data.data.contact || '';
+          }
         } else {
           showClassStatus(data.error || '保存失败', 'error');
         }
@@ -478,12 +527,11 @@ function renderClassmates(classmates) {
 
 function showClassStatus(text, type) {
   const el = document.getElementById('classStatus');
+  if (!el) return;
   el.textContent = text;
   el.style.color = type === 'success' ? '#2d7d46' : '#b34a4a';
   if (type === 'success') {
-    setTimeout(() => {
-      el.textContent = '';
-    }, 3000);
+    setTimeout(() => { el.textContent = ''; }, 3000);
   }
 }
 
