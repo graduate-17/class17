@@ -20,6 +20,7 @@
       <button class="tab-btn active" data-tab="book"><i class="fas fa-book"></i> 留言册</button>
       <button class="tab-btn" data-tab="photos"><i class="fas fa-images"></i> 照片墙</button>
       <button class="tab-btn" data-tab="classmates"><i class="fas fa-address-book"></i> 同学录</button>
+      <button class="tab-btn" data-tab="tree"><i class="fas fa-tree"></i> 成长树</button>
     </div>
 
     <!-- ===== 留言册 ===== -->
@@ -91,11 +92,18 @@
       </div>
     </div>
 
+    <div id="tab-tree" class="tab-content">
+      <div class="tree-wrapper">
+       <canvas id="treeCanvas"></canvas>
+       <div class="tree-info" id="treeInfo">🌳 已有 <span id="fruitCount">0</span> 颗果实</div>
+     </div>
+    </div>
+
     <footer>
       <p>17班全体同学 · 2026年夏</p>
     </footer>
   </div>
 
-  <script src="./script.js?v=3"></script>
+  <script src="./script.js?v=4"></script>
 </body>
 </html>
